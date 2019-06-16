@@ -12,11 +12,13 @@ class S3ContextSource(ContextSourceInterface):
                  aws_account=None,
                  credentials_file=None,
                  namespace='default',
-                 region=None):
+                 region=None,
+                 bucket_name=None):
         self.aws_account = aws_account
         self.manager = KubeManager()
         self.namespace = namespace
         self.region = region
+        self.bucket_name = bucket_name
 
     def prepare(self, context_filename):
         if self.aws_account is None:
@@ -26,8 +28,9 @@ class S3ContextSource(ContextSourceInterface):
     def upload_context(self, context_filename):
         s3_uploader = aws.S3Uploader(self.region)
         context_hash = utils.crc(context_filename)
+        bucket_name = self.bucket_name or 'kubeflow-' + self.aws_account + '-' + self.region
         return s3_uploader.upload_to_bucket(
-                    bucket_name='kubeflow-' + self.aws_account + '-' + self.region,
+                    bucket_name=bucket_name,
                     blob_name='fairing_builds/' + context_hash,
                     file_to_upload=context_filename)
 
